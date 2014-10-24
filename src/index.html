@@ -15,5 +15,16 @@
 </body>
 </html>
 <script src="../bower_components/processing/processing.js"></script>
-<script src="math.js"></script>
-<script src="cube.js"></script>
+<script src="../bower_components/requirejs/require.js"></script>
+<script src="js/math.js"></script>
+<script>
+
+  requirejs.config({
+    baseUrl: "./js"
+  });
+
+  require(["app"], function () {
+    console.log("app loaded");
+  });
+
+</script>
