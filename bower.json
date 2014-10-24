@@ -1,0 +1,20 @@
+{
+  "name": "platonic-solids",
+  "version": "0.0.1",
+  "homepage": "https://github.com/kevinb7/platonic-solids",
+  "description": "Interactive animations of platonic solids rendered using canvas and processing.js.",
+  "authors": [
+    "Kevin Barabash"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "processing": "~1.4.8"
+  }
+}
