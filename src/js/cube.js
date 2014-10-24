@@ -1,6 +1,6 @@
 /*global define */
 
-define(function (require) {
+define(function (require, exports, module) {
 
     var Face = require("face");
     var Edge = require("edge");
@@ -54,27 +54,19 @@ define(function (require) {
         ];
     };
 
-    Cube.prototype.frontFaces = function (viewMat) {
+    Cube.prototype.frontFaces = function (viewMatrix) {
         return this.faces.filter(function (face) {
-            var pts = face.points.map(function (point) {
-                return viewMat.applyTransform(point);
-            });
-
-            var normal = calcFaceNormal(pts);
+            var normal = face.calculateNormal(viewMatrix);
             return normal.z > 0;
         });
     };
 
-    Cube.prototype.backFaces = function (viewMat) {
+    Cube.prototype.backFaces = function (viewMatrix) {
         return this.faces.filter(function (face) {
-            var pts = face.points.map(function (point) {
-                return viewMat.applyTransform(point);
-            });
-
-            var normal = calcFaceNormal(pts);
+            var normal = face.calculateNormal(viewMatrix);
             return normal.z <= 0;
         });
     };
 
-    return Cube;
+    module.exports = Cube;
 });

@@ -99,11 +99,3 @@ Matrix4.prototype.applyTransform = function (v) {
             m[2] * x + m[6] * y + m[10] * z + m[14]
     );
 };
-
-// points must be transformed by the model view matrix
-function calcFaceNormal(points) {
-    var v1 = points[1].clone().subtract(points[0]);
-    var v2 = points[2].clone().subtract(points[1]);
-
-    return v1.cross(v2);
-}

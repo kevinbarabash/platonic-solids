@@ -1,20 +1,18 @@
 /*global define */
 
 define(function (require) {
-
     function sketchProc(processing) {
         with (processing) {
 
             var Cube = require("cube");
 
-            var cube, viewMat;
             var angle = 0;
             var isOpaque = true;
+            var cube = new Cube(200);
+            var viewMatrix = new Matrix4();
 
-            cube = new Cube(200);
-            viewMat = new Matrix4();
-            viewMat.rotateX(Math.PI / 6);
-            viewMat.rotateY(Math.PI / 6);
+            viewMatrix.rotateX(Math.PI / 6);
+            viewMatrix.rotateY(Math.PI / 6);
 
             setup = function () {
                 size(400, 400);
@@ -24,11 +22,7 @@ define(function (require) {
             };
 
             fillFace = function (face) {
-                var pts = face.points.map(function (point) {
-                    return viewMat.applyTransform(point);
-                });
-
-                var normal = calcFaceNormal(pts);
+                var normal = face.calculateNormal(viewMatrix);
                 if (normal.z < 0 && isOpaque) {
                     return;
                 }
@@ -40,20 +34,14 @@ define(function (require) {
                 var col = color(matches[1], matches[2], matches[3], alpha);
 
                 fill(col);
+
+                var pts = face.transformedPoints(viewMatrix);
                 quad(pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
             };
 
             strokeEdge = function(edge) {
-                var p0 = viewMat.applyTransform(edge.p0);
-                var p1 = viewMat.applyTransform(edge.p1);
-
-                var n0 = calcFaceNormal(edge.f0.points.map(function (point) {
-                    return viewMat.applyTransform(point);
-                }));
-
-                var n1 = calcFaceNormal(edge.f1.points.map(function (point) {
-                    return viewMat.applyTransform(point);
-                }));
+                var n0 = edge.f0.calculateNormal(viewMatrix);
+                var n1 = edge.f1.calculateNormal(viewMatrix);
 
                 if (n0.z < 0 && n1.z < 0) {
                     return;
@@ -61,6 +49,8 @@ define(function (require) {
                     stroke(0, 0, 0);
                 }
 
+                var p0 = viewMatrix.applyTransform(edge.p0);
+                var p1 = viewMatrix.applyTransform(edge.p1);
                 line(p0.x, p0.y, p1.x, p1.y);
             };
 
@@ -76,19 +66,19 @@ define(function (require) {
                 translate(200,200);
                 scale(1, -1);
 
-                viewMat.identity();
-                viewMat.rotateX(angle.toRadians());
-                viewMat.rotateY(Math.sqrt(2) * angle.toRadians());
+                viewMatrix.identity();
+                viewMatrix.rotateX(angle.toRadians());
+                viewMatrix.rotateY(Math.sqrt(2) * angle.toRadians());
 
                 angle += 0.5;
 
                 if (!isOpaque) {
-                    cube.backFaces(viewMat).forEach(function (face) {
+                    cube.backFaces(viewMatrix).forEach(function (face) {
                         fillFace(face);
                     });
                 }
 
-                cube.frontFaces(viewMat).forEach(function (face) {
+                cube.frontFaces(viewMatrix).forEach(function (face) {
                     fillFace(face);
                 });
 
