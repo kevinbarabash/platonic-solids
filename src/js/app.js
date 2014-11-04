@@ -5,9 +5,13 @@ define(function (require) {
         with (processing) {
 
             var Cube = require("cube");
+            var Tetrahedron = require("tetrahedron");
 
             var isOpaque = true;
             var cube = new Cube(200);
+            var tetrahedron = new Tetrahedron(200);
+            var solid = tetrahedron;
+            
             var viewMatrix = new Matrix4();
             viewMatrix.identity();
 
@@ -32,8 +36,13 @@ define(function (require) {
 
                 fill(col);
 
-                var pts = face.transformedPoints(viewMatrix);
-                quad(pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
+                beginShape();
+
+                face.transformedPoints(viewMatrix).forEach(function (p) {
+                    vertex(p.x, p.y);
+                });
+
+                endShape();
             };
 
             strokeEdge = function(edge) {
@@ -59,20 +68,19 @@ define(function (require) {
                 background(255);
 
                 pushMatrix();
-
                 translate(200,200);
 
                 if (!isOpaque) {
-                    cube.backFaces(viewMatrix).forEach(function (face) {
+                    solid.backFaces(viewMatrix).forEach(function (face) {
                         fillFace(face);
                     });
                 }
 
-                cube.frontFaces(viewMatrix).forEach(function (face) {
+                solid.frontFaces(viewMatrix).forEach(function (face) {
                     fillFace(face);
                 });
 
-                cube.edges.forEach(function (edge) {
+                solid.edges.forEach(function (edge) {
                     strokeEdge(edge);
                 });
 
@@ -91,6 +99,14 @@ define(function (require) {
                 rotMatrix.identity().rotate(mag.toRadians(), axis);
                 viewMatrix = rotMatrix.multiply(viewMatrix);
             };
+            
+            keyPressed = function () {
+                if (key.toString() === '1') {
+                    solid = tetrahedron;
+                } else if (key.toString() === '2') {
+                    solid = cube;
+                }
+            }
         }
         window.processing = processing;
     }
