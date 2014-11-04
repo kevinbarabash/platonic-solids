@@ -6,13 +6,10 @@ define(function (require) {
 
             var Cube = require("cube");
 
-            var angle = 0;
             var isOpaque = true;
             var cube = new Cube(200);
             var viewMatrix = new Matrix4();
-
-            viewMatrix.rotateX(Math.PI / 6);
-            viewMatrix.rotateY(Math.PI / 6);
+            viewMatrix.identity();
 
             setup = function () {
                 size(400, 400);
@@ -64,13 +61,6 @@ define(function (require) {
                 pushMatrix();
 
                 translate(200,200);
-                scale(1, -1);
-
-                viewMatrix.identity();
-                viewMatrix.rotateX(angle.toRadians());
-                viewMatrix.rotateY(Math.sqrt(2) * angle.toRadians());
-
-                angle += 0.5;
 
                 if (!isOpaque) {
                     cube.backFaces(viewMatrix).forEach(function (face) {
@@ -89,8 +79,17 @@ define(function (require) {
                 popMatrix();
             };
 
-            mouseMoved = function() {
-                // TODO: implement controls
+            mouseDragged = function() {
+                var speed = 0.5;
+                var dx = speed * (mouseX - pmouseX);
+                var dy = speed * (mouseY - pmouseY);
+
+                var axis = new PVector(-dy, dx, 0);
+                var mag = axis.mag();
+
+                var rotMatrix = new Matrix4();
+                rotMatrix.identity().rotate(mag.toRadians(), axis);
+                viewMatrix = rotMatrix.multiply(viewMatrix);
             };
         }
         window.processing = processing;
