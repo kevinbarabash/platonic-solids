@@ -6,12 +6,15 @@ define(function (require) {
 
             var Cube = require("cube");
             var Tetrahedron = require("tetrahedron");
+            var Octahedron = require("octahedron");
 
             var isOpaque = true;
+
             var cube = new Cube(200);
             var tetrahedron = new Tetrahedron(200);
+            var octahedron = new Octahedron(200);
             var solid = tetrahedron;
-            
+
             var viewMatrix = new Matrix4();
             viewMatrix.identity();
 
@@ -99,12 +102,14 @@ define(function (require) {
                 rotMatrix.identity().rotate(mag.toRadians(), axis);
                 viewMatrix = rotMatrix.multiply(viewMatrix);
             };
-            
+
             keyPressed = function () {
                 if (key.toString() === '1') {
                     solid = tetrahedron;
                 } else if (key.toString() === '2') {
                     solid = cube;
+                } else if (key.toString() === '3') {
+                    solid = octahedron;
                 }
             }
         }
