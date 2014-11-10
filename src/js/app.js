@@ -8,7 +8,7 @@ define(function (require) {
             var Tetrahedron = require("tetrahedron");
             var Octahedron = require("octahedron");
 
-            var isOpaque = true;
+            var isOpaque = false;
 
             var cube = new Cube(200);
             var tetrahedron = new Tetrahedron(200);
@@ -25,7 +25,34 @@ define(function (require) {
                 smooth();
             };
 
-            fillFace = function (face) {
+            var dashLength = 10;
+            var dashedLine = function(x1,y1,x2,y2) {
+                var dx = x2 - x1;
+                var dy = y2 - y1;
+                var d = Math.sqrt(dx*dx + dy*dy);
+
+                var i = 0;
+                var xStart = x1;
+                var yStart = y1;
+                var xEnd = x2;
+                var yEnd = y2;
+                while (i * dashLength < d) {
+                    var x1 = xStart + dashLength * i * dx / d;
+                    var y1 = yStart + dashLength * i * dy / d;
+
+                    if ((i+1) * dashLength < d) {
+                        x2 = x1 + dashLength * dx / d;
+                        y2 = y1 + dashLength * dy / d;
+                    } else {
+                        x2 = xEnd;
+                        y2 = yEnd;
+                    }
+                    line(x1,y1,x2,y2);
+                    i += 2;
+                }
+            };
+
+            var fillFace = function (face) {
                 var normal = face.calculateNormal(viewMatrix);
                 if (normal.z < 0 && isOpaque) {
                     return;
@@ -37,7 +64,11 @@ define(function (require) {
                 var alpha = isOpaque ? 255 : 128;
                 var col = color(matches[1], matches[2], matches[3], alpha);
 
-                fill(col);
+                if (isOpaque) {
+                    fill(col);
+                } else {
+                    fill(192,192,192,64);
+                }
 
                 beginShape();
 
@@ -48,19 +79,22 @@ define(function (require) {
                 endShape();
             };
 
-            strokeEdge = function(edge) {
+            var strokeEdge = function(edge) {
                 var n0 = edge.f0.calculateNormal(viewMatrix);
                 var n1 = edge.f1.calculateNormal(viewMatrix);
 
-                if (n0.z < 0 && n1.z < 0) {
-                    return;
-                } else {
-                    stroke(0, 0, 0);
-                }
-
                 var p0 = viewMatrix.applyTransform(edge.p0);
                 var p1 = viewMatrix.applyTransform(edge.p1);
-                line(p0.x, p0.y, p1.x, p1.y);
+
+                if (n0.z < 0 && n1.z < 0) {
+                    if (!isOpaque) {
+                        stroke(0,0,0,64);
+                        dashedLine(p0.x, p0.y, p1.x, p1.y);
+                    }
+                } else {
+                    stroke(0,0,0);
+                    line(p0.x, p0.y, p1.x, p1.y);
+                }
             };
 
             Number.prototype.toRadians = function () {
@@ -110,8 +144,12 @@ define(function (require) {
                     solid = cube;
                 } else if (key.toString() === '3') {
                     solid = octahedron;
+                } else if (key.toString() === 's') {
+                    isOpaque = true;
+                } else if (key.toString() === 'x') {
+                    isOpaque = false;
                 }
-            }
+            };
         }
         window.processing = processing;
     }
