@@ -7,13 +7,19 @@ define(function (require) {
             var Cube = require("cube");
             var Tetrahedron = require("tetrahedron");
             var Octahedron = require("octahedron");
+            var Dodecahedron = require("dodecahedron");
             var Icosahedron = require("icosahedron");
 
             var isOpaque = false;
+            var showVertices = false;
+            var showWireframe = true;
+            var showLabels = false;
+            var showNormals = false;
 
             var cube = new Cube(200);
             var tetrahedron = new Tetrahedron(200);
             var octahedron = new Octahedron(200);
+            var dodecahedron = new Dodecahedron(200);
             var icosahedron = new Icosahedron(200);
             var solid = tetrahedron;
 
@@ -25,6 +31,8 @@ define(function (require) {
                 strokeWeight(2);
                 frameRate(60);
                 smooth();
+                textSize(18);
+                textAlign(LEFT, CENTER);
             };
 
             var dashLength = 10;
@@ -109,6 +117,42 @@ define(function (require) {
                 endShape();
             };
 
+            var drawNormal = function (face) {
+                var normal = face.calculateNormal(viewMatrix);
+                var center = viewMatrix.applyTransform(face.centerPoint());
+                normal.normalize();
+
+                var tol = 0.005;
+                if (normal.z > tol) {
+                    stroke(0,0,255);
+                } else if (normal.z <= tol && normal.z > -tol) {
+                    stroke(0,255,0);
+                } else {
+                    stroke(255,0,0);
+                }
+
+                var length = 50;
+                var start = new PVector(center.x, center.y);
+                var end = new PVector(start.x + length * normal.x, start.y + length * normal.y);
+
+                line(start.x, start.y, end.x, end.y);
+
+                var perp1 = new PVector(-normal.y, normal.x);
+//                perp1.normalize();
+                perp1.mult(0.1 * length);
+                var perp2 = new PVector(normal.y, -normal.x);
+//                perp2.normalize();
+                perp2.mult(0.1 * length);
+
+                var tail1 = new PVector(start.x + 0.9 * length * normal.x, start.y + 0.9 * length * normal.y);
+                tail1.add(perp1);
+                var tail2 = new PVector(start.x + 0.9 * length * normal.x, start.y + 0.9 * length * normal.y);
+                tail2.add(perp2);
+
+                line(end.x, end.y, tail1.x, tail1.y);
+                line(end.x, end.y, tail2.x, tail2.y);
+            };
+
             var strokeEdge = function(edge) {
                 var n0 = edge.f0.calculateNormal(viewMatrix);
                 var n1 = edge.f1.calculateNormal(viewMatrix);
@@ -147,9 +191,31 @@ define(function (require) {
                     fillFace(face);
                 });
 
-                solid.edges.forEach(function (edge) {
-                    strokeEdge(edge);
-                });
+                if (showWireframe) {
+                    solid.edges.forEach(function (edge) {
+                        strokeEdge(edge);
+                    });
+                }
+
+                if (showVertices) {
+                    solid.points.forEach(function (p, i) {
+                        p = viewMatrix.applyTransform(p);
+                        fill(0,0,0);
+                        ellipse(p.x, p.y, 8, 8);
+
+                        if (showLabels) {
+                            // TODO: draw a white circle background to make it easier to see
+                            fill(0,0,255);
+                            text(i, p.x + 10, p.y);
+                        }
+                    });
+                }
+
+                if (showNormals) {
+                    solid.faces.forEach(function (face) {
+                        drawNormal(face);
+                    });
+                }
 
                 popMatrix();
             };
@@ -175,11 +241,19 @@ define(function (require) {
                 } else if (key.toString() === '3') {
                     solid = octahedron;
                 } else if (key.toString() === '4') {
+                    solid = dodecahedron;
+                } else if (key.toString() === '5') {
                     solid = icosahedron;
                 } else if (key.toString() === 's') {
-                    isOpaque = true;
-                } else if (key.toString() === 'x') {
-                    isOpaque = false;
+                    isOpaque = !isOpaque;
+                } else if (key.toString() === 'w') {
+                    showWireframe = !showWireframe;
+                } else if (key.toString() === 'v') {
+                    showVertices = !showVertices;
+                } else if (key.toString() === 'l') {
+                    showLabels = !showLabels;
+                } else if (key.toString() === 'n') {
+                    showNormals = !showNormals;
                 }
             };
         }

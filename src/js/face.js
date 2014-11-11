@@ -20,6 +20,17 @@ define(function (require, exports, module) {
         return v1.cross(v2);
     };
 
+    Face.prototype.centerPoint = function () {
+        var center = this.points.reduce(function (result, point) {
+            result.x += point.x;
+            result.y += point.y;
+            result.z += point.z;
+            return result;
+        }, new PVector(0,0,0));
+        center.div(this.points.length);
+        return center;
+    };
+
     Face.prototype.transformedPoints = function (viewMatrix) {
         return this.points.map(function (point) {
             return viewMatrix.applyTransform(point);
