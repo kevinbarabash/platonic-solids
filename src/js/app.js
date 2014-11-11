@@ -7,12 +7,14 @@ define(function (require) {
             var Cube = require("cube");
             var Tetrahedron = require("tetrahedron");
             var Octahedron = require("octahedron");
+            var Icosahedron = require("icosahedron");
 
             var isOpaque = false;
 
             var cube = new Cube(200);
             var tetrahedron = new Tetrahedron(200);
             var octahedron = new Octahedron(200);
+            var icosahedron = new Icosahedron(200);
             var solid = tetrahedron;
 
             var viewMatrix = new Matrix4();
@@ -30,6 +32,34 @@ define(function (require) {
                 var dx = x2 - x1;
                 var dy = y2 - y1;
                 var d = Math.sqrt(dx*dx + dy*dy);
+
+                var i = 0;
+                var xStart = x1;
+                var yStart = y1;
+                var xEnd = x2;
+                var yEnd = y2;
+                while (i * dashLength < d) {
+                    var x1 = xStart + dashLength * i * dx / d;
+                    var y1 = yStart + dashLength * i * dy / d;
+
+                    if ((i+1) * dashLength < d) {
+                        x2 = x1 + dashLength * dx / d;
+                        y2 = y1 + dashLength * dy / d;
+                    } else {
+                        x2 = xEnd;
+                        y2 = yEnd;
+                    }
+                    line(x1,y1,x2,y2);
+                    i += 2;
+                }
+            };
+
+            var dashedLineN = function(x1,y1,x2,y2,n) {
+//                strokeCap(SQUARE);
+                var dx = x2 - x1;
+                var dy = y2 - y1;
+                var d = Math.sqrt(dx*dx + dy*dy);
+                var dashLength = d / n;
 
                 var i = 0;
                 var xStart = x1;
@@ -89,7 +119,7 @@ define(function (require) {
                 if (n0.z < 0 && n1.z < 0) {
                     if (!isOpaque) {
                         stroke(0,0,0,64);
-                        dashedLine(p0.x, p0.y, p1.x, p1.y);
+                        dashedLineN(p0.x, p0.y, p1.x, p1.y, 10);
                     }
                 } else {
                     stroke(0,0,0);
@@ -144,6 +174,8 @@ define(function (require) {
                     solid = cube;
                 } else if (key.toString() === '3') {
                     solid = octahedron;
+                } else if (key.toString() === '4') {
+                    solid = icosahedron;
                 } else if (key.toString() === 's') {
                     isOpaque = true;
                 } else if (key.toString() === 'x') {

@@ -24,16 +24,24 @@ define(function (require, exports, module) {
             point.z *= size;
         });
 
-        this.faces = [
-            new Face(this.points, [0, 1, 4], 'rgb(255,0,0)'),
-            new Face(this.points, [1, 2, 4], 'rgb(0,255,0)'),
-            new Face(this.points, [2, 3, 4], 'rgb(0,0,255)'),
-            new Face(this.points, [3, 0, 4], 'rgb(255,255,0)'),
+        var randomColor = function () {
+            var r = 255 * Math.random() | 0;
+            var g = 255 * Math.random() | 0;
+            var b = 255 * Math.random() | 0;
 
-            new Face(this.points, [1, 0, 5], 'rgb(128,0,255)'),
-            new Face(this.points, [2, 1, 5], 'rgb(255,128,0)'),
-            new Face(this.points, [3, 2, 5], 'rgb(0,255,255)'),
-            new Face(this.points, [0, 3, 5], 'rgb(255,0,255)')
+            return 'rgb(' + [r,g,b].join(',') + ')';
+        };
+
+        this.faces = [
+            new Face(this.points, [0, 1, 4], randomColor()),
+            new Face(this.points, [1, 2, 4], randomColor()),
+            new Face(this.points, [2, 3, 4], randomColor()),
+            new Face(this.points, [3, 0, 4], randomColor()),
+
+            new Face(this.points, [1, 0, 5], randomColor()),
+            new Face(this.points, [2, 1, 5], randomColor()),
+            new Face(this.points, [3, 2, 5], randomColor()),
+            new Face(this.points, [0, 3, 5], randomColor())
         ];
 
         this.edges = [
