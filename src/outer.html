@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    body {
+      background-color: gray;
+      font-family:sans-serif;
+    }
+
+    iframe {
+      border:solid 1px black;
+      display:block;
+    }
+
+    .wrapper {
+      display: inline-block;
+      padding: 0;
+      margin: 0;
+      position: relative;
+    }
+
+    .overlay {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<h1>Platonic Solids</h1>
+<span class="wrapper">
+  <iframe width="400" height="400" src="inner.html"></iframe>
+  <span class="overlay"></span>
+</span>
+<table>
+  <tr><th>Solids:</th><th>Options:</th></tr>
+  <tr>
+    <td>
+      <ol>
+        <li>Tetrahedron</li>
+        <li>Hexahedron (cube)</li>
+        <li>Octahedron</li>
+        <li>Dodecahedron</li>
+        <li>Icosahedron</li>
+      </ol>
+    </td>
+    <td>
+      <ul>
+        <li>s – toggle solid/semi-transparent</li>
+        <li>e - toggle edges</li>
+        <li>n - toggle normals</li>
+        <li>v - toggle vertices</li>
+        <li>t - toggle text labels</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+<script>
+  var wrapper = document.querySelector(".wrapper");
+  var iframe = document.querySelector("iframe");
+  var overlay = document.querySelector(".overlay");
+  var down = false;
+  var origin = "http://localhost:63343";
+
+  // TODO: update to handle touch events
+  // TODO: responsive layout
+  // TODO: integrate into live-editor
+  // TODO: handle points properly with solid faces
+  // TODO: add lighting
+
+  overlay.addEventListener("mousedown", function (e) {
+    down = true;
+    iframe.contentWindow.postMessage({
+      type: "mousedown",
+      x: e.pageX - wrapper.offsetLeft,
+      y: e.pageY - wrapper.offsetTop
+    }, origin);
+    e.preventDefault();
+  });
+
+  overlay.addEventListener("mousemove", function (e) {
+    if (!down) {
+      iframe.contentWindow.postMessage({
+        type: "mousemove",
+        x: e.pageX - wrapper.offsetLeft,
+        y: e.pageY - wrapper.offsetTop
+      }, origin);
+    }
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (down) {
+      iframe.contentWindow.postMessage({
+        type: "mousemove",
+        x: e.pageX - wrapper.offsetLeft,
+        y: e.pageY - wrapper.offsetTop
+      }, origin);
+    }
+  });
+
+  document.addEventListener("mouseup", function (e) {
+    if (down) {
+      iframe.contentWindow.postMessage({
+        type: "mouseup",
+        x: e.pageX - wrapper.offsetLeft,
+        y: e.pageY - wrapper.offsetTop
+      }, origin);
+      down = false;
+    }
+  });
+</script>

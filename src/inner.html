@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    body {
+      margin:0;
+      overflow:hidden;
+    }
+  </style>
+</head>
+<body><canvas id="canvas1" width="400" height="400"></canvas></body>
+</html>
+<script src="../bower_components/processing/processing.js"></script>
+<script src="../bower_components/requirejs/require.js"></script>
+<script src="../bower_components/jquery/dist/jquery.min.js"></script>
+<script src="../bower_components/jquery-simulate/jquery.simulate.js"></script>
+<script src="js/math.js"></script>
+<script>
+
+  requirejs.config({
+    baseUrl: "./js"
+  });
+
+  require(["app"], function () {
+    console.log("app loaded");
+
+    var canvas = document.getElementById("canvas1");
+    window.addEventListener("message", function (e) {
+      $(canvas).simulate(e.data.type, {
+        clientX: e.data.x,
+        clientY: e.data.y
+      });
+    });
+  });
+
+</script>

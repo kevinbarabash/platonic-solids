@@ -12,7 +12,7 @@ define(function (require) {
 
             var isOpaque = false;
             var showVertices = false;
-            var showWireframe = true;
+            var showEdges = true;
             var showLabels = false;
             var showNormals = false;
 
@@ -128,6 +128,9 @@ define(function (require) {
                 } else if (normal.z <= tol && normal.z > -tol) {
                     stroke(0,255,0);
                 } else {
+                    if (isOpaque) {
+                        return;
+                    }
                     stroke(255,0,0);
                 }
 
@@ -138,10 +141,8 @@ define(function (require) {
                 line(start.x, start.y, end.x, end.y);
 
                 var perp1 = new PVector(-normal.y, normal.x);
-//                perp1.normalize();
                 perp1.mult(0.1 * length);
                 var perp2 = new PVector(normal.y, -normal.x);
-//                perp2.normalize();
                 perp2.mult(0.1 * length);
 
                 var tail1 = new PVector(start.x + 0.9 * length * normal.x, start.y + 0.9 * length * normal.y);
@@ -191,23 +192,25 @@ define(function (require) {
                     fillFace(face);
                 });
 
-                if (showWireframe) {
+                if (showEdges) {
                     solid.edges.forEach(function (edge) {
                         strokeEdge(edge);
                     });
                 }
 
                 if (showVertices) {
+                    fill(0,0,0);
                     solid.points.forEach(function (p, i) {
                         p = viewMatrix.applyTransform(p);
-                        fill(0,0,0);
                         ellipse(p.x, p.y, 8, 8);
+                    });
+                }
 
-                        if (showLabels) {
-                            // TODO: draw a white circle background to make it easier to see
-                            fill(0,0,255);
-                            text(i, p.x + 10, p.y);
-                        }
+                if (showLabels) {
+                    fill(0,0,255);
+                    solid.points.forEach(function (p, i) {
+                        p = viewMatrix.applyTransform(p);
+                        text(i, p.x + 10, p.y);
                     });
                 }
 
@@ -246,11 +249,11 @@ define(function (require) {
                     solid = icosahedron;
                 } else if (key.toString() === 's') {
                     isOpaque = !isOpaque;
-                } else if (key.toString() === 'w') {
-                    showWireframe = !showWireframe;
+                } else if (key.toString() === 'e') {
+                    showEdges = !showEdges;
                 } else if (key.toString() === 'v') {
                     showVertices = !showVertices;
-                } else if (key.toString() === 'l') {
+                } else if (key.toString() === 't') {
                     showLabels = !showLabels;
                 } else if (key.toString() === 'n') {
                     showNormals = !showNormals;
