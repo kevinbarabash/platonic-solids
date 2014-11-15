@@ -71,45 +71,41 @@ define(function (require, exports, module) {
         ];
 
         this.edges = [
-//            new Edge(this.points[0], this.points[1], this.faces[1], this.faces[2]),
-//            new Edge(this.points[0], this.points[5], this.faces[0], this.faces[1]),
-//            new Edge(this.points[0], this.points[7], this.faces[2], this.faces[3]),
-//            new Edge(this.points[0], this.points[10], this.faces[3], this.faces[4]),
-//            new Edge(this.points[0], this.points[11], this.faces[0], this.faces[4]),
-//
-//            new Edge(this.points[1], this.points[5], this.faces[1], this.faces[5]),
-//            new Edge(this.points[1], this.points[7], this.faces[2], this.faces[9]),
-//            new Edge(this.points[1], this.points[8], this.faces[9], this.faces[19]),
-//            new Edge(this.points[1], this.points[9], this.faces[5], this.faces[19]),
-//
-//            new Edge(this.points[2], this.points[3], this.faces[11], this.faces[12]),
-//            new Edge(this.points[2], this.points[4], this.faces[11], this.faces[16]),
-//            new Edge(this.points[2], this.points[6], this.faces[12], this.faces[17]),
-//            new Edge(this.points[2], this.points[10], this.faces[7], this.faces[17]),
-//            new Edge(this.points[2], this.points[11], this.faces[7], this.faces[16]),
-//
-//            new Edge(this.points[3], this.points[4], this.faces[10], this.faces[11]),
-//            new Edge(this.points[3], this.points[6], this.faces[12], this.faces[13]),
-//            new Edge(this.points[3], this.points[8], this.faces[13], this.faces[14]),
-//            new Edge(this.points[3], this.points[9], this.faces[10], this.faces[14]),
-//
-//            new Edge(this.points[4], this.points[5], this.faces[6], this.faces[15]),
-//            new Edge(this.points[4], this.points[9], this.faces[10], this.faces[15]),
-//            new Edge(this.points[4], this.points[11], this.faces[6], this.faces[16]),
-//
-//            new Edge(this.points[5], this.points[9], this.faces[5], this.faces[15]),
-//            new Edge(this.points[5], this.points[11], this.faces[0], this.faces[6]),
-//
-//            new Edge(this.points[6], this.points[8], this.faces[13], this.faces[18]),
-//            new Edge(this.points[6], this.points[7], this.faces[8], this.faces[18]),
-//            new Edge(this.points[6], this.points[10], this.faces[8], this.faces[17]),
-//
-//            new Edge(this.points[7], this.points[8], this.faces[9], this.faces[18]),
-//            new Edge(this.points[7], this.points[10], this.faces[3], this.faces[8]),
-//
-//            new Edge(this.points[8], this.points[9], this.faces[14], this.faces[19]),
-//
-//            new Edge(this.points[10], this.points[11], this.faces[4], this.faces[7])
+            new Edge(this.points[0], this.points[16], this.faces[0], this.faces[1]),
+            new Edge(this.points[0], this.points[2], this.faces[0], this.faces[2]),
+            new Edge(this.points[2], this.points[18], this.faces[0], this.faces[3]),
+            new Edge(this.points[18], this.points[6], this.faces[0], this.faces[4]),
+            new Edge(this.points[6], this.points[16], this.faces[0], this.faces[5]),
+
+            new Edge(this.points[0], this.points[12], this.faces[1], this.faces[2]),
+            new Edge(this.points[2], this.points[14], this.faces[2], this.faces[3]),
+            new Edge(this.points[18], this.points[11], this.faces[3], this.faces[4]),
+            new Edge(this.points[6], this.points[7], this.faces[4], this.faces[5]),
+            new Edge(this.points[16], this.points[10], this.faces[5], this.faces[1]),
+
+            new Edge(this.points[10], this.points[17], this.faces[5], this.faces[6]),
+            new Edge(this.points[10], this.points[8], this.faces[1], this.faces[6]),
+            new Edge(this.points[7], this.points[17], this.faces[5], this.faces[10]),
+            new Edge(this.points[7], this.points[19], this.faces[4], this.faces[10]),
+            new Edge(this.points[11], this.points[19], this.faces[4], this.faces[9]),
+            new Edge(this.points[11], this.points[9], this.faces[3], this.faces[9]),
+            new Edge(this.points[14], this.points[9], this.faces[3], this.faces[8]),
+            new Edge(this.points[14], this.points[4], this.faces[2], this.faces[8]),
+            new Edge(this.points[12], this.points[4], this.faces[2], this.faces[7]),
+            new Edge(this.points[12], this.points[8], this.faces[1], this.faces[7]),
+            new Edge(this.points[10], this.points[8], this.faces[1], this.faces[6]),
+
+            new Edge(this.points[1], this.points[17], this.faces[6], this.faces[10]),
+            new Edge(this.points[3], this.points[19], this.faces[10], this.faces[9]),
+            new Edge(this.points[15], this.points[9], this.faces[9], this.faces[8]),
+            new Edge(this.points[5], this.points[4], this.faces[8], this.faces[7]),
+            new Edge(this.points[13], this.points[8], this.faces[7], this.faces[6]),
+
+            new Edge(this.points[1], this.points[3], this.faces[10], this.faces[11]),
+            new Edge(this.points[3], this.points[15], this.faces[9], this.faces[11]),
+            new Edge(this.points[15], this.points[5], this.faces[8], this.faces[11]),
+            new Edge(this.points[5], this.points[13], this.faces[7], this.faces[11]),
+            new Edge(this.points[13], this.points[1], this.faces[6], this.faces[11])
         ];
     };
 
