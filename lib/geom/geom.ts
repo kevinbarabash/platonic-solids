@@ -3,13 +3,15 @@
  */
 
 /// <reference path="processing.d.ts"/>
-
-//declare var processing: Processing;
+/// <reference path="lodash.d.ts"/>
 
 module geom {
 
     function dot4(a: number[], b: number[]) {
-        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+        return a[0] * b[0]
+             + a[1] * b[1]
+             + a[2] * b[2]
+             + a[3] * b[3];
     }
 
     export class Matrix4 {
@@ -125,6 +127,12 @@ module geom {
                                this.x * p.y - this.y * p.x);
         }
 
+        set(p: Vector3) {
+            this.values[0] = p.values[0];
+            this.values[1] = p.values[1];
+            this.values[2] = p.values[2];
+        }
+
         toString() {
             return "(" + this.x + ", " + this.y + ", " + this.z + ")";
         }
@@ -147,85 +155,118 @@ module geom {
 
 
     export class Edge {
-        p1: Vector3;
-        p2: Vector3;
+        vertices: Vector3[];
+        indices: number[];
 
-        constructor(p1: Vector3, p2: Vector3) {
-            this.p1 = p1;
-            this.p2 = p2;
-        }
-
-        length() {
-            return this.p1.dist(this.p2);
+        constructor(vertices: Vector3[], indices: number[]) {
+            this.vertices = vertices;
+            this.indices = indices;
         }
 
         draw() {
-            // TODO: apply viewMatrix before drawing
+            var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
+            var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
+
             processing.stroke(0,0,0);
-            processing.line(this.p1.x, this.p1.y, this.p2.x, this.p2.y);
+            processing.line(p1.x, p1.y, p2.x, p2.y);
         }
     }
 
+    function randomColor() {
+        var r = processing.random(255);
+        var g = processing.random(255);
+        var b = processing.random(255);
+        return processing.color(r,g,b);
+    }
+
     export class Face {
+        vertices: Vector3[];
+        indices: number[];
         color: number;
-        points: Vector3[];
 
-        constructor(...points: Vector3[]) {
-            this.points = points;
-            this.color = processing.color(255,255,255);
-        }
-
-        addPoint(Vector3: Vector3) {
-            this.points.push(Vector3);
-        }
-
-        isPlanar() {
-            // TODO: implement me
+        constructor(vertices: Vector3[], indices: number[]) {
+            this.vertices = vertices;
+            this.indices = indices;
+            this.color = randomColor();
         }
 
         normal() {
-            if (this.points.length < 3) {
+            if (this.indices.length < 3) {
                 return;
             }
-            var v1 = this.points[1].sub(this.points[0]);
-            var v2 = this.points[2].sub(this.points[1]);
+
+            var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
+            var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
+            var p3 = viewMatrix.applyTransform(this.vertices[this.indices[2]]);
+
+            var v1 = p2.sub(p1);
+            var v2 = p3.sub(p2);
+
             return v1.cross(v2).normalize();
         }
 
         draw() {
             processing.fill(this.color);
-            // TODO: check normal after applying the transform
+
             if (this.normal().z > 0) {
                 processing.noStroke();
                 processing.beginShape();
-                this.points
-                    .map(p => viewMatrix.applyTransform(p))
-                    .forEach(p => processing.vertex(p.x, p.y, 0.0));
+                this.indices.forEach(index => {
+                    var vertex = viewMatrix.applyTransform(this.vertices[index]);
+                    processing.vertex(vertex.x, vertex.y, 0.0);
+                });
                 processing.endShape();
             }
-        }
-
-        edges(): Edge[] {
-            var result = [];
-            for (var i = 0, len = this.points.length; i < len; i++) {
-                var p = this.points[i];
-                var q = this.points[(i + 1) % len];
-                result.push(new Edge(p, q));
-            }
-            return result;
         }
     }
 
     export class Mesh {
-        points: { [id: number]: Vector3; };
-        edges: { [id: number]: Edge; };
-        faces: { [id: number]: Face; };
+        vertices: Vector3[];
+        edges: Edge[];
+        faces: Face[];
+//        vertices: { [id: number]: Vector3; };
+//        edges: { [id: number]: Edge; };
+//        faces: { [id: number]: Face; };
 
         constructor() {
-            this.points = {};
-            this.faces = {};
-            this.edges = {};
+            this.vertices = [];
+            this.faces = [];
+            this.edges = [];
         }
 
+        addVertex(x: number, y: number, z: number)  {
+            this.vertices.push(new Vector3(x, y, z));
+        }
+
+        addEdge(index1: number, index2: number) {
+            this.edges.push(new Edge(this.vertices, [index1, index2]));
+        }
+
+        addFace(...indices: number[]) {
+            this.faces.push(new Face(this.vertices, indices));
+        }
+
+        generateEdges() {
+            var len = this.faces.length;
+            for (var i = 0; i < len; i++) {
+                for (var j = i + 1; j < len; j++) {
+                    var sharedIndices = _.intersection(this.faces[i].indices, this.faces[j].indices);
+                    if (sharedIndices.length === 2) {
+                        this.addEdge(sharedIndices[0], sharedIndices[1]);
+                    }
+                }
+            }
+        }
+
+        draw() {
+            // draw faces
+            this.faces.forEach(face => face.draw());
+
+            // draw edges
+            this.edges.forEach(edge => edge.draw());
+
+            // draw vertices
+            this.vertices.forEach(vertex => vertex.draw());
+        }
     }
 }

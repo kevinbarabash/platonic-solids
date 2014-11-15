@@ -4,6 +4,8 @@
 
 declare class Processing {
 
+    constructor(canvas: HTMLCanvasElement);
+
     size(width: number, height: number);
     background(value: number);
     translate(dx: number, dy: number);
