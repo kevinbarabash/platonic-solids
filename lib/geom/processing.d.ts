@@ -2,6 +2,8 @@
  * Created by kevin on 2014-11-13.
  */
 
+/// <reference path="geom.ts"/>
+
 declare class Processing {
 
     constructor(canvas: HTMLCanvasElement);
@@ -9,6 +11,7 @@ declare class Processing {
     size(width: number, height: number);
     background(value: number);
     translate(dx: number, dy: number);
+    scale(sx: number, sy: number);
     random(max: number);
 
     // setting stroke/fill
@@ -31,4 +34,23 @@ declare class Processing {
     beginShape();
     vertex(x: number, y: number, z?: number);
     endShape();
+
+    // callbacks
+    draw();
+    mouseDragged();
+    mouseClicked();
+    mousePressed();
+    mouseReleased();
+    keyPressed();
+    keyReleased();
+
+    // variables
+    mouseX: number;
+    mouseY: number;
+    pmouseX: number;
+    pmouseY: number;
+    key: string;
+
+    // additions
+    rotateMesh(mesh: geom.Mesh);
 }

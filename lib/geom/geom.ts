@@ -30,7 +30,7 @@ module geom {
             var result = new Matrix4();
             for (var i = 0; i < 4; i++) {
                 for (var j = 0; j < 4; j++) {
-                    result[i * 4 + j] = dot4(this.row(i), other.col(j));
+                    result.values[i * 4 + j] = dot4(this.row(i), other.col(j));
                 }
             }
 
@@ -65,6 +65,24 @@ module geom {
             ];
             return result;
         }
+
+        static rotation(axis, angle) {
+            var u_x = axis.x;
+            var u_y = axis.y;
+            var u_z = axis.z;
+            var cos_a = Math.cos(angle);
+            var sin_a = Math.sin(angle);
+
+            var result = new Matrix4();
+            result.values = [
+                cos_a + u_x * u_x * (1 - cos_a),        u_x * u_y * (1 - cos_a) - u_z * sin_a,  u_x * u_z * (1 - cos_a) + u_y * sin_a,  0,
+                u_y * u_x * (1 - cos_a) + u_z * sin_a,  cos_a + u_y * u_y * (1 - cos_a),        u_y * u_z * (1 - cos_a) - u_x * sin_a,  0,
+                u_z * u_x * (1 - cos_a) - u_y * sin_a,  u_z * u_y * (1 - cos_a) + u_x * sin_a,  cos_a + u_z * u_z * (1 - cos_a),        0,
+                0,                                      0,                                      0,                                      1
+            ];
+
+            return result;
+        }
     }
 
     module gen {
@@ -80,9 +98,11 @@ module geom {
 
     export class Vector3 {
         values: number[];
+        faces: Face[];
 
         constructor(x = 0, y = 0, z = 0) {
             this.values = [x, y, z, 1];
+            this.faces = [];
         }
 
         get x() { return this.values[0]; }
@@ -138,18 +158,18 @@ module geom {
         }
 
         draw() {
-            // TODO: apply viewMatrix before drawing
-            processing.noStroke();
-            processing.fill(0,0,0);
-            processing.ellipse(this.x, this.y, 8, 8);
-        }
-
-        static sum(points: Vector3[]) {
-            return points.reduce((accum, value) => accum.add(value), new Vector3());
-        }
-
-        static average(points: Vector3[]) {
-            return Vector3.sum(points).div(points.length);
+            var p = viewMatrix.applyTransform(this);
+            if (this.faces.length > 0) {
+                if (this.faces.some(face => face.normal().z > 0)) {
+                    processing.noStroke();
+                    processing.fill(0,0,0);
+                    processing.ellipse(p.x, p.y, 8, 8);
+                }
+            } else {
+                processing.noStroke();
+                processing.fill(0,0,0);
+                processing.ellipse(p.x, p.y, 8, 8);
+            }
         }
     }
 
@@ -157,6 +177,7 @@ module geom {
     export class Edge {
         vertices: Vector3[];
         indices: number[];
+        faces: Face[];
 
         constructor(vertices: Vector3[], indices: number[]) {
             this.vertices = vertices;
@@ -164,11 +185,17 @@ module geom {
         }
 
         draw() {
-            var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
-            var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
+            if (this.faces.length === 2) {
+                var n1 = this.faces[0].normal();
+                var n2 = this.faces[1].normal();
+            }
+            if (n1.z > 0 || n2.z > 0) {
+                var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
+                var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
 
-            processing.stroke(0,0,0);
-            processing.line(p1.x, p1.y, p2.x, p2.y);
+                processing.stroke(0,0,0);
+                processing.line(p1.x, p1.y, p2.x, p2.y);
+            }
         }
     }
 
@@ -224,9 +251,6 @@ module geom {
         vertices: Vector3[];
         edges: Edge[];
         faces: Face[];
-//        vertices: { [id: number]: Vector3; };
-//        edges: { [id: number]: Edge; };
-//        faces: { [id: number]: Face; };
 
         constructor() {
             this.vertices = [];
@@ -243,7 +267,9 @@ module geom {
         }
 
         addFace(...indices: number[]) {
-            this.faces.push(new Face(this.vertices, indices));
+            var face = new Face(this.vertices, indices);
+            indices.forEach(index => this.vertices[index].faces.push(face));
+            this.faces.push(face);
         }
 
         generateEdges() {
@@ -252,10 +278,32 @@ module geom {
                 for (var j = i + 1; j < len; j++) {
                     var sharedIndices = _.intersection(this.faces[i].indices, this.faces[j].indices);
                     if (sharedIndices.length === 2) {
-                        this.addEdge(sharedIndices[0], sharedIndices[1]);
+                        var edge = new Edge(this.vertices, sharedIndices);
+                        edge.faces = [this.faces[i], this.faces[j]];
+                        this.edges.push(edge);
                     }
                 }
             }
+        }
+
+        centroid() {
+            var sum = this.vertices.reduce((accum, value) => accum.add(value), new Vector3());
+            return sum.div(this.vertices.length);
+        }
+
+        center() {
+            var centroid = this.centroid();
+            this.vertices.forEach(function (p) {
+                p.set(p.sub(centroid));
+            });
+            return this;
+        }
+
+        scale(k: number) {
+            this.vertices.forEach(function (p) {
+                p.set(p.mul(k));
+            });
+            return this;
         }
 
         draw() {
