@@ -4,15 +4,23 @@
 
 /// <reference path="geom.ts"/>
 
+
 declare class Processing {
 
     constructor(canvas: HTMLCanvasElement);
 
+    // setup
     size(width: number, height: number);
     background(value: number);
+
+    // misc
+    random(max: number);
+
+    // transforms
     translate(dx: number, dy: number);
     scale(sx: number, sy: number);
-    random(max: number);
+    pushMatrix();
+    popMatrix();
 
     // setting stroke/fill
     fill(col: number);
@@ -24,11 +32,29 @@ declare class Processing {
     strokeWeight(value: number);
     color(r: number, g: number, b: number, a?: number): number;
 
-    // basic shapes
+    colorMode(mode: number);
+    RGB: number;
+    ARGB: number;
+    HSB: number;
+    ALPHA: number;
+    CMYK: number;
+
+    // drawing primitives
     point(x: number, y: number);
     line(x1: number, y1: number, x2: number, y2: number);
     ellipse(x: number, y: number, width: number, height: number);
     rect(x: number, y: number, width: number, height: number);
+    text(text: string, x: number, y: number);
+
+    // font properties
+    textSize(size: number);
+    textAlign(xalign: number, yalign: number);
+    LEFT: number;
+    CENTER: number;
+    RIGHT: number;
+    TOP: number;
+    BOTTOM: number;
+    BASELINE: number;
 
     // custom shapes
     beginShape();

@@ -26,7 +26,7 @@ module geom {
             ];
         }
 
-        multiply(other: Matrix4) {
+        mul(other: Matrix4) {
             var result = new Matrix4();
             for (var i = 0; i < 4; i++) {
                 for (var j = 0; j < 4; j++) {
@@ -37,7 +37,7 @@ module geom {
             return result;
         }
 
-        applyTransform(p: Vector3) {
+        mulVec(p: Vector3) {
             var x = dot4(this.row(0), p.values);
             var y = dot4(this.row(1), p.values);
             var z = dot4(this.row(2), p.values);
@@ -158,7 +158,7 @@ module geom {
         }
 
         draw() {
-            var p = viewMatrix.applyTransform(this);
+            var p = viewMatrix.mulVec(this);
             if (this.faces.length > 0) {
                 if (this.faces.some(face => face.normal().z > 0)) {
                     processing.noStroke();
@@ -169,6 +169,25 @@ module geom {
                 processing.noStroke();
                 processing.fill(0,0,0);
                 processing.ellipse(p.x, p.y, 8, 8);
+            }
+        }
+
+        drawLabel(label: string) {
+            var p = viewMatrix.mulVec(this);
+            if (this.faces.length > 0) {
+                if (this.faces.some(face => face.normal().z > 0)) {
+                    processing.pushMatrix();
+                    processing.scale(1,-1);
+                    processing.fill(0, 0, 0);
+                    processing.text(label, p.x + 10, -p.y);
+                    processing.popMatrix();
+                }
+            } else {
+                processing.pushMatrix();
+                processing.scale(1,-1);
+                processing.fill(0, 0, 0);
+                processing.text(label, p.x + 10, -p.y);
+                processing.popMatrix();
             }
         }
     }
@@ -190,8 +209,8 @@ module geom {
                 var n2 = this.faces[1].normal();
             }
             if (n1.z > 0 || n2.z > 0) {
-                var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
-                var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
+                var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
+                var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
 
                 processing.stroke(0,0,0);
                 processing.line(p1.x, p1.y, p2.x, p2.y);
@@ -222,14 +241,19 @@ module geom {
                 return;
             }
 
-            var p1 = viewMatrix.applyTransform(this.vertices[this.indices[0]]);
-            var p2 = viewMatrix.applyTransform(this.vertices[this.indices[1]]);
-            var p3 = viewMatrix.applyTransform(this.vertices[this.indices[2]]);
+            var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
+            var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
+            var p3 = viewMatrix.mulVec(this.vertices[this.indices[2]]);
 
             var v1 = p2.sub(p1);
             var v2 = p3.sub(p2);
 
             return v1.cross(v2).normalize();
+        }
+
+        centroid() {
+            var sum = this.indices.reduce((accum, index) => accum.add(this.vertices[index]), new Vector3());
+            return sum.div(this.indices.length);
         }
 
         draw() {
@@ -239,23 +263,58 @@ module geom {
                 processing.noStroke();
                 processing.beginShape();
                 this.indices.forEach(index => {
-                    var vertex = viewMatrix.applyTransform(this.vertices[index]);
+                    var vertex = viewMatrix.mulVec(this.vertices[index]);
                     processing.vertex(vertex.x, vertex.y, 0.0);
                 });
                 processing.endShape();
             }
         }
+
+        drawNormal() {
+            var normal = this.normal();
+            var center = viewMatrix.mulVec(this.centroid());
+            normal.normalize();
+
+            var tol = 0.005;
+            if (normal.z > tol) {
+                processing.stroke(0,0,255);
+            } else if (normal.z <= tol && normal.z > -tol) {
+                processing.stroke(0,255,0);
+            } else {
+                processing.stroke(255,0,0);
+
+                return; // TODO: add semi-transparent visualization
+            }
+
+            var length = 50;
+            var start = new Vector3(center.x, center.y);
+            var end = new Vector3(start.x + length * normal.x, start.y + length * normal.y);
+
+            processing.line(start.x, start.y, end.x, end.y);
+        }
     }
 
     export class Mesh {
-        vertices: Vector3[];
-        edges: Edge[];
-        faces: Face[];
+        private vertices: Vector3[];
+        private edges: Edge[];
+        private faces: Face[];
+
+        showVertices: boolean;
+        showEdges: boolean;
+        showFaces: boolean;
+        showLabels: boolean;
+        showNormals: boolean;
 
         constructor() {
             this.vertices = [];
             this.faces = [];
             this.edges = [];
+
+            this.showVertices = true;
+            this.showEdges = true;
+            this.showFaces = true;
+            this.showLabels = false;
+            this.showNormals = false;
         }
 
         addVertex(x: number, y: number, z: number)  {
@@ -307,14 +366,27 @@ module geom {
         }
 
         draw() {
-            // draw faces
-            this.faces.forEach(face => face.draw());
+            if (this.showFaces) {
+                this.faces.forEach(face => face.draw());
+            }
 
-            // draw edges
-            this.edges.forEach(edge => edge.draw());
+            if (this.showEdges) {
+                this.edges.forEach(edge => edge.draw());
+            }
 
-            // draw vertices
-            this.vertices.forEach(vertex => vertex.draw());
+            if (this.showVertices) {
+                this.vertices.forEach(vertex => vertex.draw());
+            }
+
+            if (this.showLabels) {
+                processing.textSize(18);
+                processing.textAlign(processing.LEFT, processing.CENTER);
+                this.vertices.forEach((vertex, index) => vertex.drawLabel("" + index));
+            }
+
+            if (this.showNormals) {
+                this.faces.forEach(face => face.drawNormal());
+            }
         }
     }
 }
