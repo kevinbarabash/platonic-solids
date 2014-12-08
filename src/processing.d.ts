@@ -46,6 +46,8 @@ declare class Processing {
     rect(x: number, y: number, width: number, height: number);
     text(text: string, x: number, y: number);
 
+    dashedLine(x1: number, y1: number, x2: number, y2: number, n: number);
+
     // font properties
     textSize(size: number);
     textAlign(xalign: number, yalign: number);

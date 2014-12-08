@@ -81,6 +81,8 @@ var geom;
             var u_z = axis.z;
             var cos_a = Math.cos(angle);
             var sin_a = Math.sin(angle);
+            // Reference:
+            // http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
             var result = new Matrix4();
             result.values = [
                 cos_a + u_x * u_x * (1 - cos_a),
@@ -179,10 +181,11 @@ var geom;
         Vector3.prototype.toString = function () {
             return "(" + this.x + ", " + this.y + ", " + this.z + ")";
         };
-        Vector3.prototype.draw = function () {
+        Vector3.prototype.draw = function (opaque) {
+            if (opaque === void 0) { opaque = true; }
             var p = geom.viewMatrix.mulVec(this);
             if (this.faces.length > 0) {
-                if (this.faces.some(function (face) { return face.normal().z > 0; })) {
+                if (!opaque || this.faces.some(function (face) { return face.normal().z > 0; })) {
                     geom.processing.noStroke();
                     geom.processing.fill(0, 0, 0);
                     geom.processing.ellipse(p.x, p.y, 8, 8);
@@ -221,7 +224,8 @@ var geom;
             this.vertices = vertices;
             this.indices = indices;
         }
-        Edge.prototype.draw = function () {
+        Edge.prototype.draw = function (opaque) {
+            if (opaque === void 0) { opaque = true; }
             if (this.faces.length === 2) {
                 var n1 = this.faces[0].normal();
                 var n2 = this.faces[1].normal();
@@ -231,6 +235,12 @@ var geom;
                 var p2 = geom.viewMatrix.mulVec(this.vertices[this.indices[1]]);
                 geom.processing.stroke(0, 0, 0);
                 geom.processing.line(p1.x, p1.y, p2.x, p2.y);
+            }
+            if (!opaque && n1.z <= 0 && n2.z <= 0) {
+                var p1 = geom.viewMatrix.mulVec(this.vertices[this.indices[0]]);
+                var p2 = geom.viewMatrix.mulVec(this.vertices[this.indices[1]]);
+                geom.processing.stroke(0, 0, 0);
+                geom.processing.dashedLine(p1.x, p1.y, p2.x, p2.y, 10);
             }
         };
         return Edge;
@@ -264,10 +274,23 @@ var geom;
             var sum = this.indices.reduce(function (accum, index) { return accum.add(_this.vertices[index]); }, new Vector3());
             return sum.div(this.indices.length);
         };
-        Face.prototype.draw = function () {
+        Face.prototype.draw = function (opaque) {
             var _this = this;
-            geom.processing.fill(this.color);
-            if (this.normal().z > 0) {
+            if (opaque === void 0) { opaque = true; }
+            if (opaque) {
+                geom.processing.fill(this.color);
+                if (this.normal().z > 0) {
+                    geom.processing.noStroke();
+                    geom.processing.beginShape();
+                    this.indices.forEach(function (index) {
+                        var vertex = geom.viewMatrix.mulVec(_this.vertices[index]);
+                        geom.processing.vertex(vertex.x, vertex.y, 0.0);
+                    });
+                    geom.processing.endShape();
+                }
+            }
+            else {
+                geom.processing.fill(128, 128, 128, 128);
                 geom.processing.noStroke();
                 geom.processing.beginShape();
                 this.indices.forEach(function (index) {
@@ -277,7 +300,8 @@ var geom;
                 geom.processing.endShape();
             }
         };
-        Face.prototype.drawNormal = function () {
+        Face.prototype.drawNormal = function (opaque) {
+            if (opaque === void 0) { opaque = true; }
             var normal = this.normal();
             var center = geom.viewMatrix.mulVec(this.centroid());
             normal.normalize();
@@ -290,7 +314,9 @@ var geom;
             }
             else {
                 geom.processing.stroke(255, 0, 0);
-                return; // TODO: add semi-transparent visualization
+                if (opaque) {
+                    return;
+                }
             }
             var length = 50;
             var start = new Vector3(center.x, center.y);
@@ -310,6 +336,7 @@ var geom;
             this.showFaces = true;
             this.showLabels = false;
             this.showNormals = false;
+            this.opaque = true;
         }
         Mesh.prototype.addVertex = function (x, y, z) {
             this.vertices.push(new Vector3(x, y, z));
@@ -358,14 +385,15 @@ var geom;
             return this;
         };
         Mesh.prototype.draw = function () {
+            var _this = this;
             if (this.showFaces) {
-                this.faces.forEach(function (face) { return face.draw(); });
+                this.faces.forEach(function (face) { return face.draw(_this.opaque); });
             }
             if (this.showEdges) {
-                this.edges.forEach(function (edge) { return edge.draw(); });
+                this.edges.forEach(function (edge) { return edge.draw(_this.opaque); });
             }
             if (this.showVertices) {
-                this.vertices.forEach(function (vertex) { return vertex.draw(); });
+                this.vertices.forEach(function (vertex) { return vertex.draw(_this.opaque); });
             }
             if (this.showLabels) {
                 geom.processing.textSize(18);
@@ -373,7 +401,7 @@ var geom;
                 this.vertices.forEach(function (vertex, index) { return vertex.drawLabel("" + index); });
             }
             if (this.showNormals) {
-                this.faces.forEach(function (face) { return face.drawNormal(); });
+                this.faces.forEach(function (face) { return face.drawNormal(_this.opaque); });
             }
         };
         return Mesh;

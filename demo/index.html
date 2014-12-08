@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body {
+            background-color: gray;
+            font-family:sans-serif;
+        }
+
+        iframe {
+            border:solid 1px black;
+            display:block;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+<h1>Platonic Solids</h1>
+<iframe width="400" height="400" src="iframe.html"></iframe>
+<table>
+    <tr><th>Solids:</th><th>Options:</th></tr>
+    <tr>
+        <td>
+            <ol>
+                <li>Tetrahedron</li>
+                <li>Hexahedron (cube)</li>
+                <li>Octahedron</li>
+                <li>Dodecahedron</li>
+                <li>Icosahedron</li>
+            </ol>
+        </td>
+        <td>
+            <ul>
+                <li>s – toggle solid/semi-transparent</li>
+                <li>e - toggle edges</li>
+                <li>n - toggle normals</li>
+                <li>v - toggle vertices</li>
+                <li>t - toggle text labels</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+<script src="../node_modules/iframe-overlay/dist/iframe-overlay.js"></script>
+<script>
+    var iframe = document.querySelector("iframe");
+    iframeOverlay.createOverlay(iframe);
+</script>

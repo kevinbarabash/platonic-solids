@@ -73,6 +73,8 @@ module geom {
             var cos_a = Math.cos(angle);
             var sin_a = Math.sin(angle);
 
+            // Reference:
+            // http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
             var result = new Matrix4();
             result.values = [
                 cos_a + u_x * u_x * (1 - cos_a),        u_x * u_y * (1 - cos_a) - u_z * sin_a,  u_x * u_z * (1 - cos_a) + u_y * sin_a,  0,
@@ -157,10 +159,10 @@ module geom {
             return "(" + this.x + ", " + this.y + ", " + this.z + ")";
         }
 
-        draw() {
+        draw(opaque = true) {
             var p = viewMatrix.mulVec(this);
             if (this.faces.length > 0) {
-                if (this.faces.some(face => face.normal().z > 0)) {
+                if (!opaque || this.faces.some(face => face.normal().z > 0)) {
                     processing.noStroke();
                     processing.fill(0,0,0);
                     processing.ellipse(p.x, p.y, 8, 8);
@@ -203,7 +205,7 @@ module geom {
             this.indices = indices;
         }
 
-        draw() {
+        draw(opaque = true) {
             if (this.faces.length === 2) {
                 var n1 = this.faces[0].normal();
                 var n2 = this.faces[1].normal();
@@ -214,6 +216,13 @@ module geom {
 
                 processing.stroke(0,0,0);
                 processing.line(p1.x, p1.y, p2.x, p2.y);
+            }
+            if (!opaque && n1.z <= 0 && n2.z <= 0) {
+                var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
+                var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
+
+                processing.stroke(0,0,0);
+                processing.dashedLine(p1.x, p1.y, p2.x, p2.y, 10);
             }
         }
     }
@@ -256,10 +265,22 @@ module geom {
             return sum.div(this.indices.length);
         }
 
-        draw() {
-            processing.fill(this.color);
+        draw(opaque = true) {
+            if (opaque) {
+                processing.fill(this.color);
 
-            if (this.normal().z > 0) {
+                if (this.normal().z > 0) {
+                    processing.noStroke();
+                    processing.beginShape();
+                    this.indices.forEach(index => {
+                        var vertex = viewMatrix.mulVec(this.vertices[index]);
+                        processing.vertex(vertex.x, vertex.y, 0.0);
+                    });
+                    processing.endShape();
+                }
+            } else {
+                processing.fill(128,128,128,128);
+
                 processing.noStroke();
                 processing.beginShape();
                 this.indices.forEach(index => {
@@ -270,7 +291,7 @@ module geom {
             }
         }
 
-        drawNormal() {
+        drawNormal(opaque = true) {
             var normal = this.normal();
             var center = viewMatrix.mulVec(this.centroid());
             normal.normalize();
@@ -283,7 +304,9 @@ module geom {
             } else {
                 processing.stroke(255,0,0);
 
-                return; // TODO: add semi-transparent visualization
+                if (opaque) {
+                    return;
+                }
             }
 
             var length = 50;
@@ -304,6 +327,7 @@ module geom {
         showFaces: boolean;
         showLabels: boolean;
         showNormals: boolean;
+        opaque: boolean;
 
         constructor() {
             this.vertices = [];
@@ -315,6 +339,7 @@ module geom {
             this.showFaces = true;
             this.showLabels = false;
             this.showNormals = false;
+            this.opaque = true;
         }
 
         addVertex(x: number, y: number, z: number)  {
@@ -367,15 +392,15 @@ module geom {
 
         draw() {
             if (this.showFaces) {
-                this.faces.forEach(face => face.draw());
+                this.faces.forEach(face => face.draw(this.opaque));
             }
 
             if (this.showEdges) {
-                this.edges.forEach(edge => edge.draw());
+                this.edges.forEach(edge => edge.draw(this.opaque));
             }
 
             if (this.showVertices) {
-                this.vertices.forEach(vertex => vertex.draw());
+                this.vertices.forEach(vertex => vertex.draw(this.opaque));
             }
 
             if (this.showLabels) {
@@ -385,7 +410,7 @@ module geom {
             }
 
             if (this.showNormals) {
-                this.faces.forEach(face => face.drawNormal());
+                this.faces.forEach(face => face.drawNormal(this.opaque));
             }
         }
     }
