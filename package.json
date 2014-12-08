@@ -1,0 +1,24 @@
+{
+  "name": "platonic-solids",
+  "version": "0.0.1",
+  "description": "platonic-solids",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevinb7/platonic-solids.git"
+  },
+  "author": "kevinb7",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^7.0.0",
+    "typescript": "^1.3.0"
+  },
+  "dependencies": {
+    "iframe-overlay": "git://github.com/kevinb7/iframe-overlay",
+    "jquery": "^2.1.1",
+    "lodash": "^2.4.1"
+  }
+}

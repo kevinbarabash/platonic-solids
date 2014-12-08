@@ -15,24 +15,28 @@
 <script src="../bower_components/processing/processing.js"></script>
 <script src="../bower_components/requirejs/require.js"></script>
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
-<script src="../bower_components/jquery-simulate/jquery.simulate.js"></script>
+<!--<script src="../node_modules/iframe-overlay/dist/iframe-overlay.js"></script>-->
 <script src="js/math.js"></script>
 <script>
 
   requirejs.config({
-    baseUrl: "./js"
+    baseUrl: "./js",
+    paths: {
+      iframeOverlay: "../../node_modules/iframe-overlay/dist/iframe-overlay"
+    }
   });
 
-  require(["app"], function () {
+  require(["iframeOverlay", "app"], function (iframeOverlay) {
     console.log("app loaded");
 
     var canvas = document.getElementById("canvas1");
-    window.addEventListener("message", function (e) {
-      $(canvas).simulate(e.data.type, {
-        clientX: e.data.x,
-        clientY: e.data.y
-      });
-    });
+    iframeOverlay.createRelay(canvas);
+//    window.addEventListener("message", function (e) {
+//      $(canvas).simulate(e.data.type, {
+//        clientX: e.data.x,
+//        clientY: e.data.y
+//      });
+//    });
   });
 
 </script>

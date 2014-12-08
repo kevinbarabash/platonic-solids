@@ -33,10 +33,7 @@
 </head>
 <body>
 <h1>Platonic Solids</h1>
-<span class="wrapper">
-  <iframe width="400" height="400" src="inner.html"></iframe>
-  <span class="overlay"></span>
-</span>
+<iframe width="400" height="400" src="inner.html"></iframe>
 <table>
   <tr><th>Solids:</th><th>Options:</th></tr>
   <tr>
@@ -62,12 +59,13 @@
 </table>
 </body>
 </html>
+<script src="../node_modules/iframe-overlay/dist/iframe-overlay.js"></script>
 <script>
-  var wrapper = document.querySelector(".wrapper");
+//  var wrapper = document.querySelector(".wrapper");
   var iframe = document.querySelector("iframe");
-  var overlay = document.querySelector(".overlay");
-  var down = false;
-  var origin = "http://localhost:63343";
+//  var overlay = document.querySelector(".overlay");
+//  var down = false;
+//  var origin = "http://localhost:63343";
 
   // TODO: update to handle touch events
   // TODO: responsive layout
@@ -75,44 +73,5 @@
   // TODO: handle points properly with solid faces
   // TODO: add lighting
 
-  overlay.addEventListener("mousedown", function (e) {
-    down = true;
-    iframe.contentWindow.postMessage({
-      type: "mousedown",
-      x: e.pageX - wrapper.offsetLeft,
-      y: e.pageY - wrapper.offsetTop
-    }, origin);
-    e.preventDefault();
-  });
-
-  overlay.addEventListener("mousemove", function (e) {
-    if (!down) {
-      iframe.contentWindow.postMessage({
-        type: "mousemove",
-        x: e.pageX - wrapper.offsetLeft,
-        y: e.pageY - wrapper.offsetTop
-      }, origin);
-    }
-  });
-
-  document.addEventListener("mousemove", function (e) {
-    if (down) {
-      iframe.contentWindow.postMessage({
-        type: "mousemove",
-        x: e.pageX - wrapper.offsetLeft,
-        y: e.pageY - wrapper.offsetTop
-      }, origin);
-    }
-  });
-
-  document.addEventListener("mouseup", function (e) {
-    if (down) {
-      iframe.contentWindow.postMessage({
-        type: "mouseup",
-        x: e.pageX - wrapper.offsetLeft,
-        y: e.pageY - wrapper.offsetTop
-      }, origin);
-      down = false;
-    }
-  });
+  iframeOverlay.createOverlay(iframe);
 </script>
