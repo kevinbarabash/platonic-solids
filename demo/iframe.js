@@ -3,6 +3,11 @@ var processing = new Processing(canvas);
 
 geom.processing = processing;
 
+Object.defineProperty(processing, "viewMatrix", {
+    get: function () { return geom.viewMatrix; },
+    set: function (value) { geom.viewMatrix = value; }
+});
+
 processing.createTetrahedron = geom.createTetrahedron;
 processing.createCube = geom.createCube;
 processing.createOctahedron = geom.createOctahedron;
@@ -66,7 +71,7 @@ with (processing) {
         if (axis.length() > 0.001) {
             axis = axis.normalize();
             var rotMatrix = Matrix4.rotation(axis, angle);
-            geom.viewMatrix = rotMatrix.mul(geom.viewMatrix);
+            viewMatrix = rotMatrix.mul(viewMatrix);
 
             background(255);
             mesh.draw();
@@ -94,33 +99,41 @@ with (processing) {
         mesh.draw();
     };
 
-    // TODO: store mesh options separate from mesh
-    keyPressed = function () {
-        if (key.toString() === '1') {
-            mesh = tetrahedron;
-        } else if (key.toString() === '2') {
-            mesh = cube;
-        } else if (key.toString() === '3') {
-            mesh = octahedron;
-        } else if (key.toString() === '4') {
-            mesh = dodecahedron;
-        } else if (key.toString() === '5') {
-            mesh = icosahedron;
-        } else if (key.toString() === 's') {
-            mesh.opaque = !mesh.opaque;
-        } else if (key.toString() === 'e') {
-            mesh.showEdges = !mesh.showEdges;
-        } else if (key.toString() === 'v') {
-            mesh.showVertices = !mesh.showVertices;
-        } else if (key.toString() === 't') {
-            mesh.showLabels = !mesh.showLabels;
-        } else if (key.toString() === 'n') {
-            mesh.showNormals = !mesh.showNormals;
-        }
-
-        background(255);
-        mesh.draw();
-    };
 }
 window.processing = processing;
 iframeOverlay.createRelay(canvas);
+
+var poster = new Poster(window.parent);
+
+var settings = [
+    "showVertices", "showEdges", "showFaces", "opaque", "showNormals", "showLabels"
+];
+
+settings.forEach(function (name) {
+    var channel = "object_"  + name;
+    poster.listen(channel, function (value) {
+        console.log(channel + " = " + value);
+        mesh[name] = value;
+        processing.background(255);
+        mesh.draw();
+    });
+});
+
+settings.forEach(function (name) {
+    var channel = "global_"  + name;
+    poster.listen(channel, function (value) {
+        console.log(channel + " = " + value);
+        geom.Mesh[name] = value;
+        if (geom.Mesh.override) {
+            processing.background(255);
+            mesh.draw();
+        }
+    });
+});
+
+poster.listen("override", function (value) {
+    console.log("override = " + value);
+    geom.Mesh.override = value;
+    processing.background(255);
+    mesh.draw();
+});

@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "iframe-overlay": "git://github.com/kevinb7/iframe-overlay",
+    "poster": "git://github.com/kevinb7/poster.git",
     "jquery": "^2.1.1",
     "lodash": "^2.4.1"
   }

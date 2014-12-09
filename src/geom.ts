@@ -14,6 +14,13 @@ module geom {
              + a[3] * b[3];
     }
 
+    function randomColor() {
+        var r = processing.random(255);
+        var g = processing.random(255);
+        var b = processing.random(255);
+        return processing.color(r,g,b);
+    }
+
     export class Matrix4 {
         values: number[];
 
@@ -161,30 +168,32 @@ module geom {
 
         draw(opaque = true) {
             var p = viewMatrix.mulVec(this);
-            if (this.faces.length > 0) {
-                if (!opaque || this.faces.some(face => face.normal().z > 0)) {
-                    processing.noStroke();
-                    processing.fill(0,0,0);
-                    processing.ellipse(p.x, p.y, 8, 8);
-                }
-            } else {
+
+            var shouldDraw = true;
+
+            // TODO: improve this check, need to determine if all faces incident to the vertex form a loop/cycle
+            if (opaque && this.faces.filter(face => face.normal().z < 0).length >= 3) {
+                shouldDraw = false;
+            }
+
+            if (shouldDraw) {
                 processing.noStroke();
-                processing.fill(0,0,0);
+                processing.fill(0, 0, 0);
                 processing.ellipse(p.x, p.y, 8, 8);
             }
         }
 
-        drawLabel(label: string) {
+        drawLabel(label: string, opaque = true) {
             var p = viewMatrix.mulVec(this);
-            if (this.faces.length > 0) {
-                if (this.faces.some(face => face.normal().z > 0)) {
-                    processing.pushMatrix();
-                    processing.scale(1,-1);
-                    processing.fill(0, 0, 0);
-                    processing.text(label, p.x + 10, -p.y);
-                    processing.popMatrix();
-                }
-            } else {
+
+            var shouldDraw = true;
+
+            // TODO: improve this check, need to determine if all faces incident to the vertex form a loop/cycle
+            if (opaque && this.faces.filter(face => face.normal().z > 0).length === 0) {
+                shouldDraw = false;
+            }
+
+            if (shouldDraw) {
                 processing.pushMatrix();
                 processing.scale(1,-1);
                 processing.fill(0, 0, 0);
@@ -194,7 +203,6 @@ module geom {
         }
     }
 
-
     export class Edge {
         vertices: Vector3[];
         indices: number[];
@@ -203,35 +211,36 @@ module geom {
         constructor(vertices: Vector3[], indices: number[]) {
             this.vertices = vertices;
             this.indices = indices;
+            this.faces = [];
         }
 
         draw(opaque = true) {
             if (this.faces.length === 2) {
                 var n1 = this.faces[0].normal();
                 var n2 = this.faces[1].normal();
-            }
-            if (n1.z > 0 || n2.z > 0) {
+
+                if (n1.z > 0 || n2.z > 0) {
+                    var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
+                    var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
+
+                    processing.stroke(0,0,0);
+                    processing.line(p1.x, p1.y, p2.x, p2.y);
+                }
+                if (!opaque && n1.z <= 0 && n2.z <= 0) {
+                    var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
+                    var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
+
+                    processing.stroke(0,0,0);
+                    processing.dashedLine(p1.x, p1.y, p2.x, p2.y, 10);
+                }
+            } else {
                 var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
                 var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
 
                 processing.stroke(0,0,0);
                 processing.line(p1.x, p1.y, p2.x, p2.y);
             }
-            if (!opaque && n1.z <= 0 && n2.z <= 0) {
-                var p1 = viewMatrix.mulVec(this.vertices[this.indices[0]]);
-                var p2 = viewMatrix.mulVec(this.vertices[this.indices[1]]);
-
-                processing.stroke(0,0,0);
-                processing.dashedLine(p1.x, p1.y, p2.x, p2.y, 10);
-            }
         }
-    }
-
-    function randomColor() {
-        var r = processing.random(255);
-        var g = processing.random(255);
-        var b = processing.random(255);
-        return processing.color(r,g,b);
     }
 
     export class Face {
@@ -265,19 +274,25 @@ module geom {
             return sum.div(this.indices.length);
         }
 
-        draw(opaque = true) {
+        // TODO: default showBackfaces to true after migrating to WebGL
+        draw(opaque = true, showBackfaces = false) {
             if (opaque) {
-                processing.fill(this.color);
-
                 if (this.normal().z > 0) {
-                    processing.noStroke();
-                    processing.beginShape();
-                    this.indices.forEach(index => {
-                        var vertex = viewMatrix.mulVec(this.vertices[index]);
-                        processing.vertex(vertex.x, vertex.y, 0.0);
-                    });
-                    processing.endShape();
+                    processing.fill(this.color);
+                } else {
+                    if (!showBackfaces) {
+                        return;
+                    }
+                    processing.fill(64,64,64);   // backface color?
                 }
+
+                processing.noStroke();
+                processing.beginShape();
+                this.indices.forEach(index => {
+                    var vertex = viewMatrix.mulVec(this.vertices[index]);
+                    processing.vertex(vertex.x, vertex.y, 0.0);
+                });
+                processing.endShape();
             } else {
                 processing.fill(128,128,128,128);
 
@@ -327,7 +342,17 @@ module geom {
         showFaces: boolean;
         showLabels: boolean;
         showNormals: boolean;
+        showBackfaces: boolean;
         opaque: boolean;
+
+        static override = false;
+        static showVertices = true;
+        static showEdges = true;
+        static showFaces = true;
+        static showLabels = false;
+        static showNormals = false;
+        static showBackfaces = false;   // TODO: turn this on after migrating to WebGL
+        static opaque = true;
 
         constructor() {
             this.vertices = [];
@@ -339,6 +364,7 @@ module geom {
             this.showFaces = true;
             this.showLabels = false;
             this.showNormals = false;
+            this.showBackfaces = false;
             this.opaque = true;
         }
 
@@ -391,26 +417,36 @@ module geom {
         }
 
         draw() {
-            if (this.showFaces) {
-                this.faces.forEach(face => face.draw(this.opaque));
+            var showFaces = Mesh.override ? Mesh.showFaces : this.showFaces;
+            var showEdges = Mesh.override ? Mesh.showEdges : this.showEdges;
+            var showVertices = Mesh.override ? Mesh.showVertices : this.showVertices;
+            var showLabels = Mesh.override ? Mesh.showLabels : this.showLabels;
+            var showNormals = Mesh.override ? Mesh.showNormals : this.showNormals;
+            var showBackfaces = Mesh.override ? Mesh.showBackfaces : this.showBackfaces;
+            var opaque = Mesh.override ? Mesh.opaque : this.opaque;
+
+            if (showFaces) {
+                this.faces.forEach(face => face.draw(opaque, showBackfaces));
             }
 
-            if (this.showEdges) {
-                this.edges.forEach(edge => edge.draw(this.opaque));
+            if (showEdges) {
+                this.edges.forEach(edge => edge.draw(opaque));
             }
 
-            if (this.showVertices) {
-                this.vertices.forEach(vertex => vertex.draw(this.opaque));
+            if (showVertices) {
+                this.vertices.forEach(vertex => vertex.draw(opaque));
             }
 
-            if (this.showLabels) {
+            if (showLabels) {
                 processing.textSize(18);
                 processing.textAlign(processing.LEFT, processing.CENTER);
-                this.vertices.forEach((vertex, index) => vertex.drawLabel("" + index));
+                this.vertices.forEach(
+                    (vertex, index) => vertex.drawLabel("" + index, opaque)
+                );
             }
 
-            if (this.showNormals) {
-                this.faces.forEach(face => face.drawNormal(this.opaque));
+            if (showNormals) {
+                this.faces.forEach(face => face.drawNormal(opaque));
             }
         }
     }

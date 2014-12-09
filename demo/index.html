@@ -18,34 +18,38 @@
 </head>
 <body>
 <h1>Platonic Solids</h1>
-<iframe width="400" height="400" src="iframe.html"></iframe>
-<table>
-    <tr><th>Solids:</th><th>Options:</th></tr>
-    <tr>
-        <td>
-            <ol>
-                <li>Tetrahedron</li>
-                <li>Hexahedron (cube)</li>
-                <li>Octahedron</li>
-                <li>Dodecahedron</li>
-                <li>Icosahedron</li>
-            </ol>
-        </td>
-        <td>
-            <ul>
-                <li>s – toggle solid/semi-transparent</li>
-                <li>e - toggle edges</li>
-                <li>n - toggle normals</li>
-                <li>v - toggle vertices</li>
-                <li>t - toggle text labels</li>
-            </ul>
-        </td>
-    </tr>
-</table>
+<iframe width="400" height="400" src="iframe.html"></iframe><br>
+<b>Object settings:</b><br>
+    <input type="checkbox" id="object_opaque" checked style="margin-left:50px;">opaque
+    <input type="checkbox" id="object_showFaces" checked>faces
+    <input type="checkbox" id="object_showEdges" checked>edges
+    <input type="checkbox" id="object_showVertices" checked>vertices
+    <input type="checkbox" id="object_showLabels">labels
+    <input type="checkbox" id="object_showNormals">normals
+<br>
+<b>Global settings:</b><br>
+    <input type="checkbox" id="global_opaque" checked style="margin-left:50px;">opaque
+    <input type="checkbox" id="global_showFaces" checked>faces
+    <input type="checkbox" id="global_showEdges" checked>edges
+    <input type="checkbox" id="global_showVertices" checked>vertices
+    <input type="checkbox" id="global_showLabels">labels
+    <input type="checkbox" id="global_showNormals">normals
+<br>
+    <input type="checkbox" id="override" style="margin-left:50px;">override
+<br>
+<b>Mesh:</b><br>
+<span style="margin-left:50px;">1 - Tetrahedron, 2 - Hexahedron, 3 - Octahedron, 4 - Dodecahedron, 5 - Icosahedron</span>
+<!--<select id="mesh">-->
+    <!--<option>Tetrahedron</option>-->
+    <!--<option>Hexahedron (cube)</option>-->
+    <!--<option>Octahedron</option>-->
+    <!--<option>Dodecahedron</option>-->
+    <!--<option>Icosahedron</option>-->
+<!--</select>-->
+
 </body>
 </html>
 <script src="../node_modules/iframe-overlay/dist/iframe-overlay.js"></script>
-<script>
-    var iframe = document.querySelector("iframe");
-    iframeOverlay.createOverlay(iframe);
-</script>
+<script src="../node_modules/poster/dist/poster.js"></script>
+<script src="../node_modules/jquery/dist/jquery.js"></script>
+<script src="index.js"></script>
