@@ -189,9 +189,11 @@ module geom {
             var shouldDraw = true;
 
             // TODO: improve this check, need to determine if all faces incident to the vertex form a loop/cycle
-            if (opaque && this.faces.filter(face => face.normal().z > 0).length === 0) {
-                shouldDraw = false;
-            }
+            //var bfCount = this.faces.filter(face => face.normal().z < 0).length;
+            //var ffCount = this.faces.length - bfCount;
+            //if (opaque && ffCount === 0 && this.faces.length !== 0) {
+            //    shouldDraw = false;
+            //}
 
             if (shouldDraw) {
                 processing.pushMatrix();
@@ -380,6 +382,14 @@ module geom {
             var face = new Face(this.vertices, indices);
             indices.forEach(index => this.vertices[index].faces.push(face));
             this.faces.push(face);
+
+            this.edges.forEach(edge => {
+                if (_.intersection(edge.indices, face.indices).length === 2) {
+                    if (edge.faces.indexOf(face) === -1) {
+                        edge.faces.push(face);
+                    }
+                }
+            });
         }
 
         generateEdges() {
